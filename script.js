@@ -63,16 +63,17 @@ circle.addEventListener("click", () => {
 
 
     }
+                         // ❌ ignore clicks unless game is READY
+    if(state !== "ready") {
+        reset("Too early! Press start again.");
+        return;
+
 
     // ✅ reaction time
     const reaction = Math.round(performance.now() - startTime);
 
     timer.innerText = reaction + " ms";
-    // ❌ ignore clicks unless game is READY
-    if(state !== "ready" && reaction < 0 ) {
-        reset("Too early! Press start again.");
-        return;
-
+   
     if(reaction < 180){
         message.innerText = "INSANE";
     }
