@@ -3,15 +3,20 @@ const timer = document.getElementById("timer");
 const message = document.getElementById("message");
 const circle = document.getElementById("circle");
 
-let startTime;
-let gameStarted = false;
-let canClick = false;
-let timeoutId;
+let startTime = 0;
+let state = "idle"; 
+// idle | waiting | ready
 
-function resetGame(text){
-    gameStarted = false;
-    canClick = false;
+let timeoutId = null;
+
+function resetToIdle(text = "Press start") {
     clearTimeout(timeoutId);
+
+    state = "idle";
+    startTime = 0;
+
+    timer.innerText = "0 ms";
+    message.innerText = text;
 
     circle.style.background = `
     radial-gradient(
@@ -20,21 +25,15 @@ function resetGame(text){
         rgba(255,255,255,0.5) 70%,
         rgba(255,255,255,0.05) 100%
     )`;
-
-    timer.innerText = "0 ms";
-    message.innerText = text || "Press start";
 }
 
 startBtn.addEventListener("click", () => {
 
-    if(gameStarted) return;
+    resetToIdle("Wait for green...");
 
-    gameStarted = true;
-    canClick = false;
+    state = "waiting";
 
-    message.innerText = "Wait for green...";
-
-    timer.innerText = "WAIT";
+    const delay = Math.random() * 4000 + 1000;
 
     circle.style.background = `
     radial-gradient(
@@ -44,14 +43,9 @@ startBtn.addEventListener("click", () => {
         rgba(255,180,180,0.05) 100%
     )`;
 
-    // RANDOM 1–5 seconds
-    const delay = Math.random() * 4000 + 1000;
-
     timeoutId = setTimeout(() => {
 
-        if(!gameStarted) return;
-
-        canClick = true;
+        state = "ready";
         startTime = Date.now();
 
         circle.style.background = `
@@ -71,41 +65,35 @@ startBtn.addEventListener("click", () => {
 
 circle.addEventListener("click", () => {
 
-    if(!gameStarted) return;
-
-    //  TOO EARLY
-    if(!canClick){
-        resetGame("Too early! Restart.");
+    if(state === "idle") return;
+    
+    //  clicked too early
+    if(state === "waiting"){
+        resetToIdle("Too early! Press start again.");
         return;
     }
 
-    //  VALID CLICK
-    const reaction = Date.now() - startTime;
+    //  valid reaction
+    if(state === "ready"){
 
-    timer.innerText = reaction + " ms";
+        const reaction = Date.now() - startTime;
 
-    gameStarted = false;
-    canClick = false;
+        timer.innerText = reaction + " ms";
 
-    circle.style.background = `
-    radial-gradient(
-        circle,
-        rgba(255,255,255,0.95) 40%,
-        rgba(255,255,255,0.5) 70%,
-        rgba(255,255,255,0.05) 100%
-    )`;
+        if(reaction < 180){
+            message.innerText = "INSANE";
+        }
+        else if(reaction < 250){
+            message.innerText = "FAST";
+        }
+        else if(reaction < 350){
+            message.innerText = "AVERAGE";
+        }
+        else{
+            message.innerText = "SLOW";
+        }
 
-    if(reaction < 180){
-        message.innerText = "INSANE";
-    }
-    else if(reaction < 250){
-        message.innerText = "FAST";
-    }
-    else if(reaction < 350){
-        message.innerText = "AVERAGE";
-    }
-    else{
-        message.innerText = "SLOW";
+        state = "idle";
     }
 
 });
