@@ -3,14 +3,16 @@ const timer = document.getElementById("timer");
 const message = document.getElementById("message");
 const circle = document.getElementById("circle");
 
-let state = "idle"; // idle | waiting | ready
+let canClick = false;
+let gameArmed = false;
 let startTime = 0;
 let timeoutId = null;
 
 function reset(text = "Press start") {
     clearTimeout(timeoutId);
 
-    state = "idle";
+    canClick = false;
+    gameArmed = false;
     startTime = 0;
 
     timer.innerText = "0 ms";
@@ -29,7 +31,8 @@ startBtn.addEventListener("click", () => {
 
     reset("Wait for green...");
 
-    state = "waiting";
+    // IMPORTANT: arm game AFTER start click
+    gameArmed = true;
 
     const delay = Math.random() * 4000 + 1000;
 
@@ -43,7 +46,9 @@ startBtn.addEventListener("click", () => {
 
     timeoutId = setTimeout(() => {
 
-        state = "ready";
+        if(!gameArmed) return;
+
+        canClick = true;
         startTime = performance.now();
 
         message.innerText = "CLICK NOW";
@@ -63,33 +68,35 @@ startBtn.addEventListener("click", () => {
 
 circle.addEventListener("click", () => {
 
-    if(state === "idle") return;
+    // ❌ ignore EVERYTHING until game is armed
+    if(!gameArmed) return;
 
-    if(state === "waiting") {
-        reset("Too early! Press start again.");
+    // ❌ early click = fail
+    if(!canClick){
+        reset("Too early! Try again.");
         return;
     }
 
-    if(state === "ready") {
+    // ✅ valid reaction
+    const reaction = Math.round(performance.now() - startTime);
 
-        const reaction = Math.round(performance.now() - startTime);
+    timer.innerText = reaction + " ms";
 
-        timer.innerText = reaction + " ms";
-
-        if(reaction < 180){
-            message.innerText = "INSANE";
-        }
-        else if(reaction < 250){
-            message.innerText = "FAST";
-        }
-        else if(reaction < 350){
-            message.innerText = "AVERAGE";
-        }
-        else{
-            message.innerText = "SLOW";
-        }
-
-        state = "idle";
+    if(reaction < 180){
+        message.innerText = "INSANE";
     }
+    else if(reaction < 250){
+        message.innerText = "FAST";
+    }
+    else if(reaction < 350){
+        message.innerText = "AVERAGE";
+    }
+    else{
+        message.innerText = "SLOW";
+    }
+
+    // reset after successful click
+    gameArmed = false;
+    canClick = false;
 
 });
