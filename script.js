@@ -3,16 +3,12 @@ const timer = document.getElementById("timer");
 const message = document.getElementById("message");
 const circle = document.getElementById("circle");
 
+let gameId = 0;
 let canClick = false;
-let gameArmed = false;
 let startTime = 0;
-let timeoutId = null;
 
 function reset(text = "Press start") {
-    clearTimeout(timeoutId);
-
     canClick = false;
-    gameArmed = false;
     startTime = 0;
 
     timer.innerText = "0 ms";
@@ -29,10 +25,11 @@ function reset(text = "Press start") {
 
 startBtn.addEventListener("click", () => {
 
-    reset("Wait for green...");
+    gameId++; // invalidate previous games
 
-    // IMPORTANT: arm game AFTER start click
-    gameArmed = true;
+    const currentGame = gameId;
+
+    reset("Wait for green...");
 
     const delay = Math.random() * 4000 + 1000;
 
@@ -44,9 +41,10 @@ startBtn.addEventListener("click", () => {
         rgba(255,180,180,0.05) 100%
     )`;
 
-    timeoutId = setTimeout(() => {
+    setTimeout(() => {
 
-        if(!gameArmed) return;
+        // ❌ if a new game started, ignore this
+        if(currentGame !== gameId) return;
 
         canClick = true;
         startTime = performance.now();
@@ -66,18 +64,17 @@ startBtn.addEventListener("click", () => {
 
 });
 
-circle.addEventListener("click", () => {
+circle.addEventListener("click", (e) => {
 
-    // ❌ ignore EVERYTHING until game is armed
-    if(!gameArmed) return;
+    // ONLY accept real circle clicks
+    if(e.target !== circle) return;
 
-    // ❌ early click = fail
+    // ❌ not ready yet
     if(!canClick){
-        reset("Too early! Try again.");
+        reset("Too early! Press start again.");
         return;
     }
 
-    // ✅ valid reaction
     const reaction = Math.round(performance.now() - startTime);
 
     timer.innerText = reaction + " ms";
@@ -95,8 +92,6 @@ circle.addEventListener("click", () => {
         message.innerText = "SLOW";
     }
 
-    // reset after successful click
-    gameArmed = false;
     canClick = false;
 
 });
