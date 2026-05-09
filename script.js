@@ -3,13 +3,15 @@ const timer = document.getElementById("timer");
 const message = document.getElementById("message");
 const circle = document.getElementById("circle");
 
-let startTime = 0;
 let state = "idle"; 
 // idle | waiting | ready
 
+let startTime = 0;
 let timeoutId = null;
 
-function resetToIdle(text = "Press start") {
+// RESET FUNCTION (always safe)
+function resetGame(text = "Press start") {
+
     clearTimeout(timeoutId);
 
     state = "idle";
@@ -17,6 +19,8 @@ function resetToIdle(text = "Press start") {
 
     timer.innerText = "0 ms";
     message.innerText = text;
+
+    circle.style.pointerEvents = "auto";
 
     circle.style.background = `
     radial-gradient(
@@ -27,9 +31,10 @@ function resetToIdle(text = "Press start") {
     )`;
 }
 
+// START GAME
 startBtn.addEventListener("click", () => {
 
-    resetToIdle("Wait for green...");
+    resetGame("Wait for green...");
 
     state = "waiting";
 
@@ -46,7 +51,10 @@ startBtn.addEventListener("click", () => {
     timeoutId = setTimeout(() => {
 
         state = "ready";
-        startTime = Date.now();
+        startTime = performance.now();
+
+        message.innerText = "CLICK NOW";
+        timer.innerText = "GO";
 
         circle.style.background = `
         radial-gradient(
@@ -56,27 +64,27 @@ startBtn.addEventListener("click", () => {
             rgba(140,255,180,0.05) 100%
         )`;
 
-        message.innerText = "CLICK NOW";
-        timer.innerText = "GO";
-
     }, delay);
 
 });
 
+// CLICK ON CIRCLE
 circle.addEventListener("click", () => {
 
     if(state === "idle") return;
 
-    // ❌ clicked too early
+    // ❌ too early
     if(state === "waiting"){
-        resetToIdle("Too early! Press start again.");
+
+        resetGame("Too early! Press start again.");
+
         return;
     }
 
     // ✅ valid reaction
     if(state === "ready"){
 
-        const reaction = Date.now() - startTime;
+        const reaction = Math.round(performance.now() - startTime);
 
         timer.innerText = reaction + " ms";
 
