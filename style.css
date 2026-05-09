@@ -184,3 +184,10 @@ button:hover{
     }
 
 }
+.hint{
+    font-size:14px;
+    color:rgba(93,109,121,0.7);
+    letter-spacing:1px;
+    margin-top:-35px;
+    margin-bottom:25px;
+}
