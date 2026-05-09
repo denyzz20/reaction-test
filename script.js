@@ -3,24 +3,19 @@ const timer = document.getElementById("timer");
 const message = document.getElementById("message");
 const circle = document.getElementById("circle");
 
-let state = "idle"; 
-// idle | waiting | ready
-
+let waiting = false;
+let ready = false;
 let startTime = 0;
 let timeoutId = null;
 
-// RESET FUNCTION (always safe)
-function resetGame(text = "Press start") {
-
+function reset() {
     clearTimeout(timeoutId);
-
-    state = "idle";
+    waiting = false;
+    ready = false;
     startTime = 0;
 
     timer.innerText = "0 ms";
-    message.innerText = text;
-
-    circle.style.pointerEvents = "auto";
+    message.innerText = "Press start";
 
     circle.style.background = `
     radial-gradient(
@@ -31,14 +26,13 @@ function resetGame(text = "Press start") {
     )`;
 }
 
-// START GAME
 startBtn.addEventListener("click", () => {
 
-    resetGame("Wait for green...");
+    reset();
 
-    state = "waiting";
+    waiting = true;
 
-    const delay = Math.random() * 4000 + 1000;
+    message.innerText = "Wait for green...";
 
     circle.style.background = `
     radial-gradient(
@@ -48,9 +42,13 @@ startBtn.addEventListener("click", () => {
         rgba(255,180,180,0.05) 100%
     )`;
 
+    const delay = Math.random() * 4000 + 1000;
+
     timeoutId = setTimeout(() => {
 
-        state = "ready";
+        waiting = false;
+        ready = true;
+
         startTime = performance.now();
 
         message.innerText = "CLICK NOW";
@@ -68,21 +66,20 @@ startBtn.addEventListener("click", () => {
 
 });
 
-// CLICK ON CIRCLE
 circle.addEventListener("click", () => {
 
-    if(state === "idle") return;
+    // game not started
+    if(!waiting && !ready) return;
 
-    // ❌ too early
-    if(state === "waiting"){
-
-        resetGame("Too early! Press start again.");
-
+    // clicked too early
+    if(waiting && !ready){
+        reset();
+        message.innerText = "Too early! Press start again.";
         return;
     }
 
-    // ✅ valid reaction
-    if(state === "ready"){
+    // valid reaction
+    if(ready){
 
         const reaction = Math.round(performance.now() - startTime);
 
@@ -101,7 +98,7 @@ circle.addEventListener("click", () => {
             message.innerText = "SLOW";
         }
 
-        state = "idle";
+        ready = false;
     }
 
 });
