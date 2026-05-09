@@ -3,7 +3,7 @@ const timer = document.getElementById("timer");
 const message = document.getElementById("message");
 const circle = document.getElementById("circle");
 
-let state = "idle"; // idle | ready
+let state = "idle"; // idle | waiting | ready
 let startTime = 0;
 let timeoutId = null;
 
@@ -28,6 +28,8 @@ function reset(text = "Press start") {
 startBtn.addEventListener("click", () => {
 
     reset("Wait for green...");
+
+    state = "waiting";
 
     const delay = Math.random() * 4000 + 1000;
 
@@ -61,31 +63,33 @@ startBtn.addEventListener("click", () => {
 
 circle.addEventListener("click", () => {
 
+    if(state === "idle") return;
 
-    }
-                         // ❌ ignore clicks unless game is READY
-    if(state !== "ready") {
+    if(state === "waiting") {
         reset("Too early! Press start again.");
         return;
-
-
-    // ✅ reaction time
-    const reaction = Math.round(performance.now() - startTime);
-
-    timer.innerText = reaction + " ms";
-   
-    if(reaction < 180){
-        message.innerText = "INSANE";
-    }
-    else if(reaction < 250){
-        message.innerText = "FAST";
-    }
-    else if(reaction < 350){
-        message.innerText = "AVERAGE";
-    }
-    else{
-        message.innerText = "SLOW";
     }
 
-    state = "idle";
+    if(state === "ready") {
+
+        const reaction = Math.round(performance.now() - startTime);
+
+        timer.innerText = reaction + " ms";
+
+        if(reaction < 180){
+            message.innerText = "INSANE";
+        }
+        else if(reaction < 250){
+            message.innerText = "FAST";
+        }
+        else if(reaction < 350){
+            message.innerText = "AVERAGE";
+        }
+        else{
+            message.innerText = "SLOW";
+        }
+
+        state = "idle";
+    }
+
 });
