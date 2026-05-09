@@ -66,14 +66,14 @@ startBtn.addEventListener("click", () => {
 circle.addEventListener("click", () => {
 
     if(state === "idle") return;
-    
-    //  clicked too early
+
+    // ❌ clicked too early
     if(state === "waiting"){
         resetToIdle("Too early! Press start again.");
         return;
     }
 
-    //  valid reaction
+    // ✅ valid reaction
     if(state === "ready"){
 
         const reaction = Date.now() - startTime;
